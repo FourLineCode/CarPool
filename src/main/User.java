@@ -3,6 +3,7 @@ package main;
 import java.io.FileWriter;
 import java.util.UUID;
 
+// Data model for storing user information
 public class User {
 
     private UUID userId;
@@ -41,6 +42,7 @@ public class User {
         this.password = password;
     }
 
+    // Static method to save a user information in the database
     public static void save(User user, String path){
         try{
             FileWriter csvWriter = new FileWriter(path, true);

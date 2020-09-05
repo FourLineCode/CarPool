@@ -3,6 +3,7 @@ package main;
 import java.io.FileWriter;
 import java.util.UUID;
 
+// Data model for storing ride information
 public class Ride {
 
     private UUID rideId;
@@ -85,6 +86,7 @@ public class Ride {
         this.price = price;
     }
 
+    // Static method to save a ride information in the database
     public static void save(Ride r, String path){
         try{
             FileWriter csvWriter = new FileWriter(path, true);

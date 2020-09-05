@@ -12,49 +12,62 @@ public class Main {
 
     public static Scanner in = new Scanner(System.in);
 
+    // Path variables of database files (relative path)
     public static String classPath = new File("").getAbsolutePath();
     public static String userPath = classPath.concat("/src/db/users.csv");
     public static String ridePath = classPath.concat("/src/db/rides.csv");
     public static String bookingPath = classPath.concat("/src/db/bookings.csv");
 
+    // Application state
     public static boolean running = true;
     public static boolean loggedIn = false;
     public static UUID currentUserId = null;
 
+    // Database info stored in memory
     public static ArrayList<User> userList = new ArrayList<User>();
     public static ArrayList<Ride> rideList = new ArrayList<Ride>();
     public static ArrayList<UUID> bookedRidesList = new ArrayList<UUID>();
 
+    // ===== MAIN METHOD ===== //
     public static void main(String[] args) {
 
+        // Load initial data from database
         loadDatabase();
+        // Show initial message
         init();
 
+        // Main loop
         while(running){
             int authResponse = authMenu();
             switch(authResponse){
+                // Login
                 case 1: {
                     loggedIn = login();
                     while(loggedIn){
                         int mainResponse = mainMenu();
 
                         switch(mainResponse){
+                            // Find a ride
                             case 1:{
                                 showAvailableRides();
                                 break;
                             }
+                            // Schedule a ride
                             case 2:{
                                 createRide();
                                 break;
                             }
+                            // Show all booked rides
                             case 3:{
                                 showBookedRides();
                                 break;
                             }
+                            // Logout
                             case 4:{
                                 logout();
                                 break;
                             }
+                            // Exit
                             case 5:{
                                 logout();
                                 running = false;
@@ -64,10 +77,12 @@ public class Main {
                     }
                     break;
                 }
+                // Register
                 case 2: {
                     register();
                     break;
                 }
+                // Exit
                 case 3: {
                     running = false;
                     break;
@@ -80,9 +95,12 @@ public class Main {
 
     }
 
+    // Loads all users and rides information on startup
     public static void loadDatabase(){
         try{
             String row;
+
+            // Loads all users
             BufferedReader userReader = new BufferedReader(new FileReader(userPath));
             while ((row = userReader.readLine()) != null) {
                 String[] data = row.split(",");
@@ -92,6 +110,7 @@ public class Main {
             }
             userReader.close();
 
+            // Loads all rides
             BufferedReader rideReader = new BufferedReader(new FileReader(ridePath));
             while ((row = rideReader.readLine()) != null) {
                 String[] data = row.split(",");
@@ -105,6 +124,7 @@ public class Main {
         }
     }
 
+    // Loads all booked rides for a user after login
     public static void loadBookedList(){
         try{
             String row;
@@ -128,11 +148,13 @@ public class Main {
         }
     }
 
+    // Shows initial message on startup
     public static void init(){
         Display.menu("Welcome To CarPool");
         Display.menu("An App To Schedule And Share Rides With Others");
     }
 
+    // Prompts user for response in menu
     public static int prompt(){
         try{
             System.out.print("Your Choice> ");
@@ -145,6 +167,7 @@ public class Main {
         }
     }
 
+    // Shows authentication menu for login/register
     public static int authMenu(){
         int res;
         do {
@@ -162,12 +185,14 @@ public class Main {
         return res;
     }
 
+    // Registers a new user
     public static void register(){
         System.out.println();
         Display.menu("Register A New Account");
         System.out.print("Enter Username: ");
         String name = in.next();
 
+        // Checks if user already exits with same username
         boolean foundUser = false;
         for(User u : userList){
             if(u.getUsername().equals(name)){
@@ -183,20 +208,22 @@ public class Main {
         System.out.print("Enter Password: ");
         String password = in.next();
 
+        // Saves user in the database
         User newUser = new User(name, password);
-
         User.save(newUser, userPath);
         userList.add(newUser);
 
         Display.success("Successfully Registered");
     }
 
+    // Login a user
     public static boolean login(){
         System.out.println();
         Display.menu("Log In As Existing User");
         System.out.print("Enter Username: ");
         String name = in.next();
 
+        // Finds the user from database
         boolean foundUser = false;
         User user = null;
         for(User u : userList){
@@ -206,13 +233,15 @@ public class Main {
                 break;
             }
         }
+        // If user not found in database, throw error
         if(!foundUser){
             Display.error("No User Found With Given Username");
             return false;
         }
 
-        String password = "something random that shouldn't match";
-        while(!password.equals(user.getPassword())){
+        // Matches password with database
+        String password = "";
+        while(!password.equals(user.getPassword()) || password == ""){
             System.out.print("Enter Password: ");
             password = in.next();
 
@@ -228,6 +257,7 @@ public class Main {
         return true;
     }
 
+    // Logout user
     public static void logout(){
         currentUserId = null;
         loggedIn = false;
@@ -235,6 +265,7 @@ public class Main {
         Display.success("Successfully Logged Out");
     }
 
+    // Shows main menu for logged in users
     public static int mainMenu(){
         int res;
         do {
@@ -255,6 +286,7 @@ public class Main {
         return res;
     }
 
+    // Shows all available rides for booking
     public static void showAvailableRides(){
         System.out.println();
         if(rideList.size() == 0){
@@ -263,11 +295,11 @@ public class Main {
         } else {
             Display.ride(rideList);
             System.out.println();
-            Display.menu("Enter '-1' To Go Back");
+            Display.error("Enter '0' To Go Back");
 
             System.out.print("Choose A Ride Id To Book> ");
             int res = in.nextInt();
-            if(res == -1) return;
+            if(res == 0) return;
             while(res < 1 || res > rideList.size()){
                 Display.error("Invalid Choice");
                 System.out.print("Choose A Ride Id To Book> ");
@@ -278,6 +310,7 @@ public class Main {
         }
     }
 
+    // Schedule a new ride
     public static void createRide(){
         System.out.println();
         Display.menu("Schedule A Ride");
@@ -306,14 +339,15 @@ public class Main {
         }
         System.out.println();
 
+        // Creates a new ride and saves in the database
         Ride newRide = new Ride(carModel, location, destination, time, seats, price);
-
         Ride.save(newRide, ridePath);
         rideList.add(newRide);
 
         Display.success("Successfully Scheduled A Ride");
     }
 
+    // Show all booked rides for a logged in user
     public static void showBookedRides(){
         System.out.println();
         if(bookedRidesList.size() == 0){
@@ -333,9 +367,11 @@ public class Main {
         }
     }
 
+    // Book a ride for the logged in user
     public static void bookRide(int index){
         Ride ride = rideList.get(index);
 
+        // Checks if the user already booked this ride
         for(UUID id : bookedRidesList){
             if(id.compareTo(ride.getRideId()) == 0){
                 Display.error("This Ride Is Already Booked For This User");
@@ -343,6 +379,7 @@ public class Main {
             }
         }
 
+        // Saves the booked ride in the database
         try{
             FileWriter csvWriter = new FileWriter(bookingPath, true);
             csvWriter.append(currentUserId.toString());
