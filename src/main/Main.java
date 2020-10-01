@@ -312,37 +312,42 @@ public class Main {
 
     // Schedule a new ride
     public static void createRide(){
-        System.out.println();
-        Display.menu("Schedule A Ride");
-        System.out.print("Enter Location: ");
-        String location = in.next();
-        System.out.print("Enter Destination: ");
-        String destination = in.next();
-        System.out.print("Enter Car Model: ");
-        String carModel = in.next();
-        System.out.print("Enter Departure Time: ");
-        String time = in.next();
-        System.out.print("Enter Available Seats: ");
-        int seats = in.nextInt();
-        while(seats <= 0){
-            Display.error("Cannot Create Ride With No Seats");
+        try{
+            System.out.println();
+            Display.menu("Schedule A Ride");
+            System.out.print("Enter Location: ");
+            String location = in.next();
+            System.out.print("Enter Destination: ");
+            String destination = in.next();
+            System.out.print("Enter Car Model: ");
+            String carModel = in.next();
+            System.out.print("Enter Departure Time: ");
+            String time = in.next();
             System.out.print("Enter Available Seats: ");
-            seats = in.nextInt();
-        }
+            int seats = in.nextInt();
+            while(seats <= 0){
+                Display.error("Cannot Create Ride With No Seats");
+                System.out.print("Enter Available Seats: ");
+                seats = in.nextInt();
+            }
 
-        System.out.print("Enter Price: ");
-        double price = in.nextDouble();
-        while(price <= 0){
-            Display.error("Price Is Too Low");
             System.out.print("Enter Price: ");
-            price = in.nextDouble();
-        }
-        System.out.println();
+            double price = in.nextDouble();
+            while(price <= 0){
+                Display.error("Price Is Too Low");
+                System.out.print("Enter Price: ");
+                price = in.nextDouble();
+            }
+            System.out.println();
 
-        // Creates a new ride and saves in the database
-        Ride newRide = new Ride(carModel, location, destination, time, seats, price);
-        Ride.save(newRide, ridePath);
-        rideList.add(newRide);
+
+            // Creates a new ride and saves in the database
+            Ride newRide = new Ride(carModel, location, destination, time, seats, price);
+            Ride.save(newRide, ridePath);
+            rideList.add(newRide);
+        } catch(Exception e){
+            Display.error("Don't Use Spaces In Input");
+        }
 
         Display.success("Successfully Scheduled A Ride");
     }
